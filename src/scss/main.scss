@@ -164,3 +164,9 @@ table.table-xs > :not(caption) > * > * {
   color: #fff !important;
   text-decoration: none;
 }
+
+
+
+body {
+  --radix-connect-button-border-radius: 40px;
+}

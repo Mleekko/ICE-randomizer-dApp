@@ -13,6 +13,8 @@
                         <li></li>
                     </ul>
                 </div>
+
+                <div><radix-connect-button /></div>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav-bar"
                         aria-controls="nav-bar" aria-expanded="false" aria-label="Nav">
                     <span class="navbar-toggler-icon"></span>
@@ -26,6 +28,7 @@ import { defineComponent } from "vue";
 import type { NavItem } from "@/types/Components";
 import DropdownLink from "@/components/header/DropdownLink.vue";
 import { useRoute } from "vue-router";
+import { RadixDappToolkit, RadixNetwork } from "@radixdlt/radix-dapp-toolkit";
 
 export default defineComponent({
     components: {DropdownLink},
@@ -34,9 +37,22 @@ export default defineComponent({
             navItems: [{
                 href: "/",
                 text: "Home",
+            },{
+                href: "/app",
+                text: "App",
             }] as NavItem[],
 
         };
+    },
+    mounted() {
+      const rdt = RadixDappToolkit({
+        dAppDefinitionAddress:
+            'account_tdx_2_128uvygwu4d80fu32n29wqy84e35xhg3xtgq0m4wkgkdghju7cke5fz',
+        networkId: RadixNetwork.Stokenet,
+        applicationName: 'ICE Randomizer',
+        applicationVersion: '0.1.0',
+      });
+      rdt.buttonApi.setTheme('white');
     },
     methods: {
         isActive(linkHref: string) {

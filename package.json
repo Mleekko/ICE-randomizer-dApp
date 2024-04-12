@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.6",
+    "@radixdlt/radix-dapp-toolkit": "^1.4.4",
     "@vueuse/core": "^9.6.0",
     "bootstrap": "^5.2.2",
     "bootstrap-icons-vue": "^1.8.1",
