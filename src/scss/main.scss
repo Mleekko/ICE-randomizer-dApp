@@ -1,0 +1,166 @@
+main .container {
+  padding-top: 85px;
+}
+
+.main-page {
+  /* - 85px header - 57px footer and leave some gap */
+  min-height: min(calc(100vh - 147px), 250px);
+  align-items: center;
+  justify-content: center;
+
+  .loader, .error-alert {
+    min-height: min(calc(100vh - 62px), 165px); // 85px less
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-name {
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  .page-header {
+    vertical-align: middle;
+    text-align: center;
+    padding: 1rem 0;
+  }
+}
+
+/* Common */
+table.table-xs > :not(caption) > * > * {
+  padding: 0.3rem 0.3rem;
+}
+
+.btn-xs {
+  font-size: 16px;
+  --bs-btn-padding-y: 0;
+  --bs-btn-padding-x: 0.25rem;
+}
+
+.btn-0 {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background-color: unset !important;
+  margin-left: 5px;
+}
+
+.btn-0:hover, .btn-0.focus {
+  color: #3459e6 !important;
+}
+
+
+.badge-xl {
+  --bs-badge-padding-y: 0.58335em;
+}
+
+.nowrap {
+  white-space: nowrap !important;
+}
+
+.ms-5-5 {
+  margin-left: 3.3125rem !important;
+}
+.ms-6 {
+  margin-left: 4.25rem !important;
+}
+.ms-7 {
+  margin-left: 7.5rem !important;
+}
+
+.fs-5-5 {
+  font-size: 1.125rem !important;
+}
+
+.fs-8 {
+  font-size: 0.75rem !important;
+}
+
+.fs-9 {
+  font-size: 0.65rem !important;
+}
+
+.fs-10 {
+  font-size: 0.5rem !important;
+}
+
+.rt-3 {
+  top: -3px;
+  position: relative;
+}
+
+.rt-5 {
+  top: -5px;
+  position: relative;
+}
+
+.rt-7 {
+  top: -7px;
+  position: relative;
+}
+
+.rt-10 {
+  top: -10px;
+  position: relative;
+}
+
+.rt-20 {
+  top: -20px;
+  position: relative;
+}
+
+.rt--4 {
+  top: 4px;
+  position: relative;
+}
+
+.rt--10 {
+  top: 10px;
+  position: relative;
+}
+
+@media (min-width: 992px) {
+  .px-lg-6 {
+    padding-right: 4rem;
+    padding-left: 4rem;
+  }
+}
+
+
+.c-gray {
+  color: dimgray;
+}
+
+.icon-big {
+  max-width: 64px;
+  max-height: 64px;
+  border-radius: 25%;
+}
+
+.icon-med {
+  width: 32px;
+  height: 32px;
+  border-radius: 25%;
+}
+
+.icon-tiny {
+  width: 20px;
+  height: 20px;
+  border-radius: 25%;
+}
+
+@media (min-width: 1200px) {
+  .line-big-xl {
+    line-height: 64px;
+    vertical-align: middle;
+  }
+}
+
+.line-normal {
+  line-height: var(--bs-body-line-height);
+}
+
+.lnk-white {
+  color: #fff !important;
+  text-decoration: none;
+}
