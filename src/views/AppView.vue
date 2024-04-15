@@ -8,6 +8,16 @@
                     </h4>
                 </div>
                 <div class="row">
+                    <div class="text-center ">
+                        <span v-if="componentBalance  && componentBalance.ice"  class="float-end small">&nbsp;/ {{ componentBalance.ice }} ICE</span>
+                        <span class="float-end small">Total locked: {{ componentBalance ? componentBalance.water : "?" }} Water</span>
+                    </div>
+<!--                    <div class="text-center">-->
+<!--                        Mint chances: XXX-->
+<!--                    </div>-->
+                </div>
+                <hr>
+                <div class="row">
                     <div v-if="accounts.length > 0">
                         <select v-model="selectedAccount" class="form-select mb-3">
                             <option v-for="account in accounts" v-bind:key="account.address" :value="account.address">
@@ -120,11 +130,14 @@ import {useRdtStore} from "@/stores/RdtStore";
 import {Config} from "@/common/config";
 import type {
     FungibleResourcesCollectionItemVaultAggregatedVault,
-    NonFungibleResourcesCollectionItemVaultAggregatedVault
+    NonFungibleResourcesCollectionItemVaultAggregatedVault, ProgrammaticScryptoSborValueTuple
 } from "@radixdlt/radix-dapp-toolkit";
 import {Manifests} from "@/common/manifests";
 import TxStatusLine from "@/components/common/TxStatusLine.vue";
 import Strings from "@/utils/Strings";
+// import {
+//     StateEntityDetailsResponseComponentDetails
+// } from "@radixdlt/babylon-gateway-api-sdk/dist/generated/models/StateEntityDetailsResponseComponentDetails";
 
 const sumVaults = (v: FungibleResourcesCollectionItemVaultAggregatedVault): number => {
     let sum = 0;
@@ -167,6 +180,7 @@ export default defineComponent({
             for (const account of this.accounts) {
                 this.updateBalance(account.address);
             }
+            this.updateComponentState();
             if (!this.selectedAccount && this.accounts && this.accounts.length > 0) {
                 this.selectedAccount = this.accounts[0].address;
             }
@@ -174,8 +188,8 @@ export default defineComponent({
         getBalance(account: string): Balance {
             return this.balances[account];
         },
-        async updateBalance(account: string) {
-            let response = await this.RdtStore.rdt!.gatewayApi.state.getEntityDetailsVaultAggregated(account);
+        async loadBalance(entityAddress: string): Promise<Balance> {
+            let response = await this.RdtStore.rdt!.gatewayApi.state.getEntityDetailsVaultAggregated(entityAddress);
 
             let balance = {water: 0, ice: 0, tickets: 0};
             response.fungible_resources.items.forEach(resource => {
@@ -190,7 +204,26 @@ export default defineComponent({
                     balance.tickets = sumVaultsNF(resource.vaults);
                 }
             });
-            this.balances[account] = balance;
+            return balance;
+        },
+        async updateBalance(account: string) {
+            this.balances[account] = await this.loadBalance(account);
+        },
+        async updateComponentState(): Promise<void> {
+            const component = Config.component;
+            let oldBalance = this.balances[component];
+            let balance = await this.loadBalance(component);
+
+            if (!oldBalance || balance.ice !== oldBalance.ice) {
+                // let response = await this.RdtStore.rdt!.gatewayApi.state.getEntityDetailsVaultAggregated(Config.rrc404_component);
+                //
+                // let state: ProgrammaticScryptoSborValueTuple = (<StateEntityDetailsResponseComponentDetails>response.details!).state! as ProgrammaticScryptoSborValueTuple;
+                // state.fields.forEach((field) => {
+                //
+                // });
+
+            }
+            this.balances[component] = balance;
         },
         floor(num: number): string {
             return Math.floor(num).toString();
@@ -228,6 +261,7 @@ export default defineComponent({
             this.txStatus.success = "Transaction sent!";
             setTimeout(() => {
                 this.updateBalance(this.selectedAccount);
+                this.updateComponentState();
                 setTimeout(() => {
                     if (this.txStatus.success && !this.txStatus.error) {
                         this.clearTx();
@@ -238,7 +272,7 @@ export default defineComponent({
         clearTx() {
             this.txType = "";
             this.txStatus = {} as TxStatus;
-        }
+        },
 
     },
     computed: {
@@ -256,7 +290,10 @@ export default defineComponent({
         },
         balance(): Balance | null {
             return this.selectedAccount ? this.balances[this.selectedAccount] : null;
-        }
+        },
+        componentBalance(): Balance | null {
+            return this.balances[Config.component];
+        },
     },
     watch: {
         selectedAccount() {
