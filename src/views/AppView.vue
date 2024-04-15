@@ -157,9 +157,9 @@ export default defineComponent({
             txStatus: {} as TxStatus,
         };
     },
-    beforeMount() {
-        this.onAccountsUpdate({} as any);
+    beforeMount(): void {
         this.selectedAccount = this.AccountsStore.selectedAccount;
+        this.onAccountsUpdate({} as any);
         this.AccountsStore.subscribeSelectedAccount(this.onAccountsUpdate);
     },
     methods: {
