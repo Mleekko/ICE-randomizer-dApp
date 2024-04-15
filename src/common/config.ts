@@ -1,4 +1,7 @@
+import {RadixNetwork} from "@radixdlt/radix-dapp-toolkit";
+
 export declare type EnvConfig = {
+    network: (typeof RadixNetwork)[keyof typeof RadixNetwork];
     water_resource: string;
     ice_resource: string;
     rrc404_component: string;
@@ -9,6 +12,7 @@ export declare type EnvConfig = {
 }
 
 // export const Config: EnvConfig = {
+//     network: RadixNetwork.Stokenet,
 //     water_resource: "resource_tdx_2_1thpd5wxvj7pz4u67z39l424vd4ajnnnx2sjff8wktq6cnlwkenwe0e",
 //     ice_resource: "resource_tdx_2_1n2aclv9vx3z2hxxxafswfqlpt3cvqfkw7dc4eqrp8n4yan6s47ad0n",
 //     rrc404_component: "component_tdx_2_1czuyqr546ptgwn40gtearfe39jfp4w55jx8fsfyanna896l7s4sc8a",
@@ -17,6 +21,7 @@ export declare type EnvConfig = {
 //     dapp_definition: "account_tdx_2_128uvygwu4d80fu32n29wqy84e35xhg3xtgq0m4wkgkdghju7cke5fz",
 // };
 export const Config: EnvConfig = {
+    network: RadixNetwork.Mainnet,
     water_resource: "resource_rdx1t4h4396mukhpzdrr5sfvegjsxl8q7a34q2vkt4quxcxahna8fucuz4",
     ice_resource: "resource_rdx1n2y299ekzx4au2v9yjmxzu650ulvk5ndx3u5tlevfclk0uvdgs30px",
     rrc404_component: "component_rdx1czscv9f2mv034hewjplej5ef4f2ecug2fxxelfpgxrsrhw4mglq2yp",
