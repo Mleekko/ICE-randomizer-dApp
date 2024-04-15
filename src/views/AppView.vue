@@ -11,7 +11,12 @@
                     <div v-if="accounts.length > 0">
                         <select v-model="selectedAccount" class="form-select mb-3">
                             <option v-for="account in accounts" v-bind:key="account.address" :value="account.address">
-                                <span>{{ account.address }}</span> <span>({{ account.label }})</span>
+                                <span v-for="accBalance in [getBalance(account.address)]">
+                                    <span>{{ Strings.displayAddress(account.address) }}</span>
+                                    <span> ({{ account.label }}) &nbsp;&nbsp;&nbsp;
+                                        <span v-if="accBalance">[W: {{floor(accBalance.water)}} / I: {{accBalance.ice}} / T: {{accBalance.tickets}} ]</span>
+                                    </span>
+                                </span>
                             </option>
                         </select>
 
@@ -78,7 +83,7 @@
                                                 <span class="input-group-text p-1">Withdraw:</span>
                                                 <input type="number" v-model="ticketsRange" class="form-control px-2" min="0"
                                                        :max="balance.tickets">
-                                                <span class="input-group-text">ICERAND</span>
+                                                <span class="input-group-text">IRAND</span>
                                             </div>
                                         </div>
                                         <div>
@@ -119,6 +124,7 @@ import type {
 } from "@radixdlt/radix-dapp-toolkit";
 import {Manifests} from "@/common/manifests";
 import TxStatusLine from "@/components/common/TxStatusLine.vue";
+import Strings from "@/utils/Strings";
 
 const sumVaults = (v: FungibleResourcesCollectionItemVaultAggregatedVault): number => {
     let sum = 0;
@@ -236,6 +242,9 @@ export default defineComponent({
 
     },
     computed: {
+        Strings() {
+            return Strings
+        },
         AccountsStore() {
             return useAccountsStore();
         },
