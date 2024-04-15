@@ -30,8 +30,8 @@ import {defineComponent} from "vue";
 import type {NavItem} from "@/types/Components";
 import DropdownLink from "@/components/header/DropdownLink.vue";
 import {useRoute} from "vue-router";
-import {DataRequestBuilder, RadixDappToolkit, RadixNetwork} from "@radixdlt/radix-dapp-toolkit";
 import {useAccountsStore} from "@/stores/AccountsStore";
+import {useRdtStore} from "@/stores/RdtStore";
 
 export default defineComponent({
     components: {DropdownLink},
@@ -44,25 +44,10 @@ export default defineComponent({
                 href: "/app",
                 text: "App",
             }] as NavItem[],
-
         };
     },
     mounted() {
-        const rdt = RadixDappToolkit({
-            dAppDefinitionAddress: "account_tdx_2_128uvygwu4d80fu32n29wqy84e35xhg3xtgq0m4wkgkdghju7cke5fz",
-            networkId: RadixNetwork.Stokenet,
-            applicationName: "ICE Randomizer",
-            applicationVersion: "0.1.0",
-        });
-        rdt.walletApi.setRequestData(DataRequestBuilder.accounts().atLeast(1));
-
-        rdt.walletApi.walletData$.subscribe((state) => {
-            console.log(state);
-            let accounts = (state && state.accounts) || [];
-            this.AccountsStore.setAccounts(accounts);
-        })
-        // rdt.walletApi.getWalletData
-        rdt.buttonApi.setTheme("white");
+        useRdtStore().initRdt();
     },
     methods: {
         isActive(linkHref: string) {
