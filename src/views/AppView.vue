@@ -68,7 +68,7 @@
                             <div class="row gx-5">
                                 <div class="col">
                                     <div class="p-3 border bg-light">
-                                        {{ balance ? Format.percent2(balance.water) : '?' }} Water
+                                        {{ balance ? Format.percent(balance.water) : '?' }} Water
                                     </div>
                                 </div>
                                 <div class="col">
