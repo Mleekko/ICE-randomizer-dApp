@@ -26,7 +26,7 @@ main .container {
   }
 }
 
-.mint-panel .badge {
+.mint-panel:not(.small) .badge {
   min-width: 4.406em;
 }
 

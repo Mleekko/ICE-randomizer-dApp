@@ -15,22 +15,8 @@
                         <div>&nbsp;
                             <span class="float-end small">Total locked: {{ componentBalance ? componentBalance.water : "?" }} Water</span>
                         </div>
-                        <div v-if="mintResult" class="text-end mint-panel">
-                            Will be minted:
-                            <span class="badge text-bg-success">{{ mintResult[0] }}</span>&nbsp;
-                            <span class="badge text-bg-primary">{{ mintResult[1] }}</span>&nbsp;
-                            <span class="badge text-bg-danger">{{ mintResult[2] }}</span>&nbsp;
-                            <span class="badge text-bg-warning">{{ mintResult[3] }}</span>&nbsp;
-                            <span class="badge text-bg-indigo">{{ mintResult[4] }}</span>&nbsp;
-                        </div>
-                        <div v-if="mintPercents" class="text-end mint-panel">
-                            Minting odds:
-                            <span class="badge text-bg-success">{{ mintPercents[0] }}%</span>&nbsp;
-                            <span class="badge text-bg-primary">{{ mintPercents[1] }}%</span>&nbsp;
-                            <span class="badge text-bg-danger">{{ mintPercents[2] }}%</span>&nbsp;
-                            <span class="badge text-bg-warning">{{ mintPercents[3] }}%</span>&nbsp;
-                            <span class="badge text-bg-indigo">{{ mintPercents[4] }}%</span>&nbsp;
-                        </div>
+                        <mint-nums-line v-if="mintResult" title="Will be minted:" :rarities="mintResult" />
+                        <mint-nums-line v-if="mintPercents" title="Minting odds:" :rarities="mintPercents" suffix="%" />
                     </div>
                 </div>
                 <hr>
@@ -67,13 +53,16 @@
                             </div>
                             <div class="row gx-5">
                                 <div class="col">
-                                    <div class="p-3 border bg-light">
+                                    <div class="p-3 border bg-light" style="height: 100%;">
                                         {{ balance ? Format.percent(balance.water) : '?' }} Water
                                     </div>
                                 </div>
                                 <div class="col">
                                     <div class="p-3 border bg-light">
-                                        {{ balance ? balance.tickets : '?' }} Randomizer Tickets <span class="float-end"></span>
+                                        <span>
+                                            {{ balance ? balance.tickets : '?' }} Randomizer Tickets <span class="float-end"></span>
+                                        </span>
+                                        <mint-nums-line v-if="balance && balance.rarities" title="" :rarities="balance.rarities" class="small" />
                                     </div>
                                 </div>
                             </div>
@@ -149,13 +138,17 @@ import {Config} from "@/common/config";
 import type {
     FungibleResourcesCollectionItemVaultAggregatedVault,
     NonFungibleResourcesCollectionItemVaultAggregatedVault,
-    ProgrammaticScryptoSborValueTuple, ProgrammaticScryptoSborValueDecimal, ProgrammaticScryptoSborValue,
-    StateEntityDetailsResponseComponentDetails
+    ProgrammaticScryptoSborValueTuple, ProgrammaticScryptoSborValueDecimal, ProgrammaticScryptoSborValue, ProgrammaticScryptoSborValueEnum,
+    StateEntityDetailsResponseComponentDetails, ProgrammaticScryptoSborValueNonFungibleLocalId
 } from "@radixdlt/radix-dapp-toolkit";
 import {Manifests} from "@/common/manifests";
 import TxStatusLine from "@/components/common/TxStatusLine.vue";
 import Strings from "@/utils/Strings";
 import Format from "@/utils/Format";
+import type {
+    StateNonFungibleDetailsResponseItem
+} from "@radixdlt/babylon-gateway-api-sdk/dist/generated/models/StateNonFungibleDetailsResponseItem";
+import MintNumsLine from "@/components/common/MintNumsLine.vue";
 
 const sumVaults = (v: FungibleResourcesCollectionItemVaultAggregatedVault): number => {
     let sum = 0;
@@ -215,7 +208,7 @@ class Rrc404State {
 }
 
 export default defineComponent({
-    components: {TxStatusLine},
+    components: {MintNumsLine, TxStatusLine},
     data() {
         return {
             balances: {} as Record<string, Balance>,
@@ -251,7 +244,7 @@ export default defineComponent({
         async loadBalance(entityAddress: string): Promise<Balance> {
             let response = await this.RdtStore.rdt!.gatewayApi.state.getEntityDetailsVaultAggregated(entityAddress);
 
-            let balance = {water: 0, ice: 0, tickets: 0};
+            let balance: Balance = {water: 0, ice: 0, tickets: 0, ticketIds:[], rarities:[0,0,0,0,0,0]};
             response.fungible_resources.items.forEach(resource => {
                 if (resource.resource_address == Config.water_resource) {
                     balance.water = sumVaults(resource.vaults);
@@ -262,12 +255,47 @@ export default defineComponent({
                     balance.ice = sumVaultsNF(resource.vaults);
                 } else if (resource.resource_address == Config.ticket) {
                     balance.tickets = sumVaultsNF(resource.vaults);
+                    balance.ticketIds = resource.vaults.items[0].items!;
                 }
             });
             return balance;
         },
         async updateBalance(account: string) {
-            this.balances[account] = await this.loadBalance(account);
+            let oldBalance = this.balances[account];
+            let balance = await this.loadBalance(account);
+            if (!oldBalance || balance.tickets !== oldBalance.tickets) {
+                let response = await this.RdtStore.rdt!.gatewayApi.state.getNonFungibleData(Config.ticket, balance.ticketIds);
+                const rarities = [0,0,0,0,0,0];
+                const iceIds: string[] = [];
+                response.forEach((item: StateNonFungibleDetailsResponseItem) => {
+                    let fields = (item.data!.programmatic_json as ProgrammaticScryptoSborValueTuple).fields;
+                    fields.forEach((f) => {
+                        const field = f as ProgrammaticScryptoSborValueEnum;
+                        if (field.field_name === "result") {
+                            if (field.variant_name === "Some") {
+                                iceIds.push((field.fields[0] as ProgrammaticScryptoSborValueNonFungibleLocalId).value);
+                            } else {
+                                rarities[5]++;
+                            }
+                        }
+                    })
+                });
+                let response2 = await this.RdtStore.rdt!.gatewayApi.state.getNonFungibleData(Config.ice_resource, iceIds);
+                response2.forEach((item: StateNonFungibleDetailsResponseItem) => {
+                    let fields = (item.data!.programmatic_json as ProgrammaticScryptoSborValueTuple).fields;
+                    fields.forEach((f) => {
+                        const field = f as ProgrammaticScryptoSborValueEnum;
+                        if (field.field_name === "color") {
+                            rarities[field.variant_id]++;
+                        }
+                    })
+                });
+
+                balance.rarities = rarities;
+            } else {
+                balance.rarities = oldBalance.rarities;
+            }
+            this.balances[account] = balance;
         },
         async updateComponentState(): Promise<void> {
             const component = Config.component;
