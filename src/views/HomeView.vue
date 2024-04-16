@@ -18,6 +18,14 @@
                 </RouterLink>
               </div>
             </div>
+            <br>
+            <br>
+            <br>
+            <div class="row">
+              <small>Code: <a href="https://github.com/Mleekko/ICE-randomizer" target="_blank" class="ms-3">Component</a> &nbsp;
+                  <a href="https://github.com/Mleekko/ICE-randomizer-dapp" target="_blank">Site</a></small>
+            </div>
+
           </div>
         </div>
     </main>

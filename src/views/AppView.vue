@@ -9,12 +9,29 @@
                 </div>
                 <div class="row">
                     <div class="text-center ">
-                        <span v-if="componentBalance  && componentBalance.ice"  class="float-end small">&nbsp;/ {{ componentBalance.ice }} ICE</span>
-                        <span class="float-end small">Total locked: {{ componentBalance ? componentBalance.water : "?" }} Water</span>
+                        <span v-if="componentBalance  && componentBalance.ice" class="float-end small">&nbsp;/ {{
+                                componentBalance.ice
+                            }} ICE</span>
+                        <div>&nbsp;
+                            <span class="float-end small">Total locked: {{ componentBalance ? componentBalance.water : "?" }} Water</span>
+                        </div>
+                        <div v-if="mintResult" class="text-end mint-panel">
+                            Will be minted:
+                            <span class="badge text-bg-success">{{ mintResult[0] }}</span>&nbsp;
+                            <span class="badge text-bg-primary">{{ mintResult[1] }}</span>&nbsp;
+                            <span class="badge text-bg-danger">{{ mintResult[2] }}</span>&nbsp;
+                            <span class="badge text-bg-warning">{{ mintResult[3] }}</span>&nbsp;
+                            <span class="badge text-bg-indigo">{{ mintResult[4] }}</span>&nbsp;
+                        </div>
+                        <div v-if="mintPercents" class="text-end mint-panel">
+                            Minting odds:
+                            <span class="badge text-bg-success">{{ mintPercents[0] }}%</span>&nbsp;
+                            <span class="badge text-bg-primary">{{ mintPercents[1] }}%</span>&nbsp;
+                            <span class="badge text-bg-danger">{{ mintPercents[2] }}%</span>&nbsp;
+                            <span class="badge text-bg-warning">{{ mintPercents[3] }}%</span>&nbsp;
+                            <span class="badge text-bg-indigo">{{ mintPercents[4] }}%</span>&nbsp;
+                        </div>
                     </div>
-<!--                    <div class="text-center">-->
-<!--                        Mint chances: XXX-->
-<!--                    </div>-->
                 </div>
                 <hr>
                 <div class="row">
@@ -24,7 +41,8 @@
                                 <span v-for="accBalance in [getBalance(account.address)]">
                                     <span>{{ Strings.displayAddress(account.address) }}</span>
                                     <span> ({{ account.label }}) &nbsp;&nbsp;&nbsp;
-                                        <span v-if="accBalance">[W: {{floor(accBalance.water)}} / I: {{accBalance.ice}} / T: {{accBalance.tickets}} ]</span>
+                                        <span
+                                            v-if="accBalance">[W: {{ floor(accBalance.water) }} / I: {{ accBalance.ice }} / T: {{ accBalance.tickets }} ]</span>
                                     </span>
                                 </span>
                             </option>
@@ -50,7 +68,7 @@
                             <div class="row gx-5">
                                 <div class="col">
                                     <div class="p-3 border bg-light">
-                                        {{ balance ? balance.water : '?' }} Water
+                                        {{ balance ? Format.percent2(balance.water) : '?' }} Water
                                     </div>
                                 </div>
                                 <div class="col">
@@ -83,7 +101,7 @@
                                                     </span>
                                             </div>
                                         </div>
-                                        <tx-status-line v-if="txType === 'deposit'" :data="txStatus" />
+                                        <tx-status-line v-if="txType === 'deposit'" :data="txStatus"/>
                                     </div>
                                 </div>
                                 <div class="col">
@@ -109,7 +127,7 @@
                                                     </span>
                                             </div>
                                         </div>
-                                        <tx-status-line v-if="txType === 'withdraw'" :data="txStatus" />
+                                        <tx-status-line v-if="txType === 'withdraw'" :data="txStatus"/>
                                     </div>
                                 </div>
                             </div>
@@ -130,14 +148,14 @@ import {useRdtStore} from "@/stores/RdtStore";
 import {Config} from "@/common/config";
 import type {
     FungibleResourcesCollectionItemVaultAggregatedVault,
-    NonFungibleResourcesCollectionItemVaultAggregatedVault, ProgrammaticScryptoSborValueTuple
+    NonFungibleResourcesCollectionItemVaultAggregatedVault,
+    ProgrammaticScryptoSborValueTuple, ProgrammaticScryptoSborValueDecimal, ProgrammaticScryptoSborValue,
+    StateEntityDetailsResponseComponentDetails
 } from "@radixdlt/radix-dapp-toolkit";
 import {Manifests} from "@/common/manifests";
 import TxStatusLine from "@/components/common/TxStatusLine.vue";
 import Strings from "@/utils/Strings";
-// import {
-//     StateEntityDetailsResponseComponentDetails
-// } from "@radixdlt/babylon-gateway-api-sdk/dist/generated/models/StateEntityDetailsResponseComponentDetails";
+import Format from "@/utils/Format";
 
 const sumVaults = (v: FungibleResourcesCollectionItemVaultAggregatedVault): number => {
     let sum = 0;
@@ -157,6 +175,45 @@ const sumVaultsNF = (v: NonFungibleResourcesCollectionItemVaultAggregatedVault):
 
 declare type TxType = "" | "withdraw" | "deposit";
 
+class Rrc404State {
+    public supply = [0, 0, 0, 0, 0];
+
+    constructor() {
+    }
+
+    public simulateNext(n: number): Rrc404State {
+        let supply = [...this.supply];
+
+        const result = new Rrc404State();
+        for (let k = 0; k < n; k++) {
+
+            let circulating_nfts = supply.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue;
+            },0);
+
+            let percentages = [0.42, 0.30, 0.16, 0.08, 0.04];
+
+            let max_deficit = 0;
+            let color_index = 0
+            if (circulating_nfts > 0) {
+                for (let i = 0; i < percentages.length; i++) {
+                    const percentage = percentages[i];
+                    let target = circulating_nfts * percentage;
+                    let deficit = target - supply[i];
+                    if (deficit > max_deficit) {
+                        max_deficit = deficit;
+                        color_index = i;
+                    }
+                }
+            }
+
+            supply[color_index]++;
+            result.supply[color_index]++;
+        }
+        return result;
+    }
+}
+
 export default defineComponent({
     components: {TxStatusLine},
     data() {
@@ -165,6 +222,9 @@ export default defineComponent({
             selectedAccount: "",
             waterRange: 0,
             ticketsRange: 0,
+
+            mintResult: null as number[] | null,
+            mintPercents: null as string[] | null,
 
             txType: "" as TxType,
             txStatus: {} as TxStatus,
@@ -214,14 +274,29 @@ export default defineComponent({
             let oldBalance = this.balances[component];
             let balance = await this.loadBalance(component);
 
-            if (!oldBalance || balance.ice !== oldBalance.ice) {
-                // let response = await this.RdtStore.rdt!.gatewayApi.state.getEntityDetailsVaultAggregated(Config.rrc404_component);
-                //
-                // let state: ProgrammaticScryptoSborValueTuple = (<StateEntityDetailsResponseComponentDetails>response.details!).state! as ProgrammaticScryptoSborValueTuple;
-                // state.fields.forEach((field) => {
-                //
-                // });
+            if (!oldBalance || balance.water !== oldBalance.water) {
+                let response = await this.RdtStore.rdt!.gatewayApi.state.getEntityDetailsVaultAggregated(Config.rrc404_component);
 
+                let state: ProgrammaticScryptoSborValueTuple = (response.details! as StateEntityDetailsResponseComponentDetails).state! as ProgrammaticScryptoSborValueTuple;
+                const iceState = new Rrc404State();
+                state.fields.forEach((f: ProgrammaticScryptoSborValue) => {
+                    const field = f as ProgrammaticScryptoSborValueDecimal;
+                    if (field.field_name == "green_supply") {
+                        iceState.supply[0] = Number(field.value);
+                    } else if (field.field_name == "blue_supply") {
+                        iceState.supply[1] = Number(field.value);
+                    } else if (field.field_name == "red_supply") {
+                        iceState.supply[2] = Number(field.value);
+                    } else if (field.field_name == "orange_supply") {
+                        iceState.supply[3] = Number(field.value);
+                    } else if (field.field_name == "purple_supply") {
+                        iceState.supply[4] = Number(field.value);
+                    }
+                });
+
+                let simulatedResult = iceState.simulateNext(balance.water);
+                this.mintResult = simulatedResult.supply;
+                this.mintPercents = simulatedResult.supply.map((val => Format.percent1(val / balance.water * 100)));
             }
             this.balances[component] = balance;
         },
@@ -276,6 +351,9 @@ export default defineComponent({
 
     },
     computed: {
+        Format() {
+            return Format
+        },
         Strings() {
             return Strings
         },

@@ -26,6 +26,10 @@ main .container {
   }
 }
 
+.mint-panel .badge {
+  min-width: 4.406em;
+}
+
 /* Common */
 table.table-xs > :not(caption) > * > * {
   padding: 0.3rem 0.3rem;
@@ -169,4 +173,8 @@ table.table-xs > :not(caption) > * > * {
 
 body {
   --radix-connect-button-border-radius: 40px;
+}
+.text-bg-indigo {
+  color: #fff !important;
+  background-color: var(--bs-indigo) !important;
 }
